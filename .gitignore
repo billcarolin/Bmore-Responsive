@@ -115,6 +115,9 @@ dist
 *.plan
 *.out
 
+#IntelliJ
+*.iml
+
 # MKDocs Wiki
 site/
 
