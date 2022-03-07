@@ -22,3 +22,5 @@ variable "lb_sg" {
 }
 
 variable "certificate_arn" {}
+
+variable "ecs_cluster_name" {}

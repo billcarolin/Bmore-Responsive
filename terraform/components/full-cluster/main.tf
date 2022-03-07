@@ -25,7 +25,10 @@ module "s3" {
 data "template_file" "cfb_ecs_task_definition" {
   template = file("cfb-container.json.tpl")
   vars = {
-    image_address        = module.ecs_cluster.cfb_registry
+    docker_image_url     = module.ecs_cluster.cfb_registry
+    docker_container_port = var.docker_container_port
+    fargate_cpu          = var.fargate_cpu
+    fargate_memory       = var.fargate_memory
     s3_bucket            = module.s3.output_bucket_name
     vue_app_base_api_url = var.api_url
     node_env             = "production"
@@ -116,13 +119,14 @@ data "aws_route53_zone" "hosted_zone" {
 #}
 
 module "alb" {
-  source          = "../../modules/alb"
-  vpc_id          = module.vpc.vpc-id
-  vpc_subnets     = module.vpc.public-subnet-ids
-  lb_sg           = module.sg.alb-sg-id
-  cfb_app_port    = 3000
+  source            = "../../modules/alb"
+  vpc_id            = module.vpc.vpc-id
+  vpc_subnets       = module.vpc.public-subnet-ids
+  lb_sg             = module.sg.alb-sg-id
+  cfb_app_port      = var.docker_container_port
+  ecs_cluster_name  = var.ecs_cluster_name
   #TODO -- certificate_arn = module.certificate.certificate_arn
-  certificate_arn = "TODO"
+  certificate_arn   = "TODO"
 }
 
 module "waf" {
@@ -134,15 +138,17 @@ module "waf" {
 
 module "ecs_cluster" {
   source                                 = "../../modules/ecs"
-  cluster_name                           = "bmore-responsive-cluster"
+  cluster_name                           = var.ecs_cluster_name
+  ecs_service_name                       = var.ecs_service_name
   output_bucket_arn                      = module.s3.output_bucket_arn
   bmore-responsive_desired_count         = "3"
   bmore-responsive_target_group_arn      = module.alb.tg-cfb-arn
-  bmore-responsive_container_name        = "bmore-responsive"
-  bmore-responsive_container_port        = "3000"
+  bmore-responsive_container_port        = var.docker_container_port
   bmore-responsive_container_definitions = data.template_file.cfb_ecs_task_definition.rendered
   aws_region                             = var.aws_region
-  seed_data_bucket_arn                       = "arn:aws:s3:::seed-data-cfb-aws"
+  seed_data_bucket_arn                   = "arn:aws:s3:::seed-data-cfb-aws"
+  public_subnet_ids                      = module.vpc.public-subnet-ids
+  vpc_id                                 = module.vpc.vpc-id
 }
 
 module "asg" {
@@ -152,7 +158,7 @@ module "asg" {
   instance_count         = 3
   instance_type          = "t2.micro"
   user_data              = data.template_file.user_data.rendered
-  cluster_name           = "bmore-responsive-cluster"
+  cluster_name           = var.ecs_cluster_name
   subnet_ids             = module.vpc.subnet_ids
   asg_security_group_ids = [module.sg.ecs_sg_id]
   ecs_role               = module.ecs_cluster.ecs_role

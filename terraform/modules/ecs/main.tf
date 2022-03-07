@@ -73,9 +73,9 @@ data "aws_iam_policy_document" "ecs_cluster_asg_policy" {
 
 data "aws_caller_identity" "current" {}
 
-resource "aws_iam_role" "ecs_cluster" {
+resource "aws_iam_role" "ecs_cluster_role" {
   path = "/"
-  name = "bmore-responsive_ecs_cluster_role"
+  name = "${var.cluster_name}-role"
 
   assume_role_policy = <<EOF
 {
@@ -97,18 +97,18 @@ EOF
 
 resource "aws_iam_role_policy" "ecs_cluster_asg_policy" {
   name_prefix = "ecs-cluster-policy-"
-  role        = aws_iam_role.ecs_cluster.id
+  role        = aws_iam_role.ecs_cluster_role.id
   policy      = data.aws_iam_policy_document.ecs_cluster_asg_policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "ssm_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  role       = aws_iam_role.ecs_cluster.name
+  role       = aws_iam_role.ecs_cluster_role.name
 }
 
 resource "aws_iam_instance_profile" "ecs_cluster_asg_profile" {
   name_prefix = "ecs_cluster_asg_profile-"
-  role        = aws_iam_role.ecs_cluster.name
+  role        = aws_iam_role.ecs_cluster_role.name
 }
 
 # Create the ECR Repositories for the containers
@@ -127,7 +127,7 @@ resource "aws_ecr_repository_policy" "bmore-responsive-api-policy" {
             "Sid": "new policy",
             "Effect": "Allow",
             "Principal": {
-              "AWS": "${aws_iam_role.ecs_cluster.arn}"
+              "AWS": "${aws_iam_role.ecs_cluster_role.arn}"
             },
             "Action": [
                 "ecr:GetDownloadUrlForLayer",
@@ -188,7 +188,7 @@ data "aws_iam_policy_document" "task_execution_role_assume_role_policy_document"
   statement {
     effect = "Allow"
     principals {
-      identifiers = ["ecs-tasks.amazonaws.com"]
+      identifiers = ["ecs.amazonaws.com", "ecs-tasks.amazonaws.com"]
       type        = "Service"
     }
     actions = ["sts:AssumeRole"]
@@ -211,7 +211,7 @@ resource "aws_iam_role_policy_attachment" "task_execution_permissions_policy_att
 }
 
 
-resource "aws_ecs_cluster" "ecs_cluster" {
+resource "aws_ecs_cluster" "ecs_cluster_fargate" {
   name = var.cluster_name
 }
 
@@ -220,9 +220,14 @@ resource "aws_cloudwatch_log_group" "cfb-api-logs" {
 }
 
 resource "aws_ecs_task_definition" "bmore-responsive_ecs_task_definition" {
-  family                  = "bmore-responsive"
+  family                  = var.ecs_service_name
   container_definitions   = var.bmore-responsive_container_definitions
+  cpu                       = var.fargate_cpu
+  memory                    = var.fargate_memory
+  requires_compatibilities  = ["FARGATE"]
+  network_mode              = "awsvpc"
   //task_role_arn         = "arn:aws:iam::180104022864:role/bmore-responsive_ecs_cluster_role"
+  task_role_arn           = aws_iam_role.task_execution_role.arn
   execution_role_arn      = aws_iam_role.task_execution_role.arn
   //awslogs-create-group    = "true"
   //awslogs-region          = "${var.aws_region}"
@@ -231,15 +236,47 @@ resource "aws_ecs_task_definition" "bmore-responsive_ecs_task_definition" {
 }
 
 resource "aws_ecs_service" "pricer_ecs_service" {
-  name            = "bmore-responsive"
-  cluster         = aws_ecs_cluster.ecs_cluster.id
+  name            = var.ecs_service_name
   task_definition = aws_ecs_task_definition.bmore-responsive_ecs_task_definition.arn
   desired_count   = var.bmore-responsive_desired_count
+  cluster         = aws_ecs_cluster.ecs_cluster_fargate.id
+  launch_type     = "FARGATE"
+
+  #FIXME -- temporarily allow access through public ip until DNS is switched over.
+  network_configuration {
+    subnets           = data.terraform_remote_state.platform.outputs.ecs_public_subnets
+    security_groups   = [aws_security_group.temp_app_security_group.id]
+    assign_public_ip  = true
+  }
 
   load_balancer {
-    target_group_arn = var.bmore-responsive_target_group_arn
-    container_name   = var.bmore-responsive_container_name
+    container_name   = var.ecs_service_name
     container_port   = var.bmore-responsive_container_port
+    target_group_arn = var.bmore-responsive_target_group_arn
+  }
+}
+
+resource "aws_security_group" "temp_app_security_group" {
+  name        = "${var.ecs_service_name}-SG"
+  description = "Security group for springbootapp to communicate in and out"
+  vpc_id      = data.terraform_remote_state.platform.outputs.vpc_id
+
+  ingress {
+    from_port   = 3000
+    protocol    = "TCP"
+    to_port     = 3000
+    cidr_blocks = [data.terraform_remote_state.platform.outputs.vpc_cidr_block]
+  }
+
+  egress {
+    from_port   = 0
+    protocol    = "-1"
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.ecs_service_name}-SG"
   }
 }
 

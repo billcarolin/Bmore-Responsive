@@ -1,13 +1,13 @@
 [
   {
-    "name": "bmore-responsive",
-    "image": "${image_address}",
-    "cpu": 128,
-    "memory": 512,
+    "name": "${task_definition_name}",
+    "image": "${docker_image_url}",
+    "cpu": ${fargate_cpu},
+    "memory": ${fargate_memory},
     "essential": true,
     "portMappings": [
       {
-        "containerPort": 3000,
+        "containerPort": ${docker_container_port},
         "hostPort": 0
       }
     ],
@@ -16,9 +16,9 @@
         "logDriver": "awslogs",
           "options": 
             {
-              "awslogs-group": "cfb-api-logs",
-              "awslogs-region": "us-east-2",
-              "awslogs-stream-prefix": "cfb-api-"
+              "awslogs-group": "${ecs_service_name}-LogGroup",
+              "awslogs-region": "${aws_region}",
+              "awslogs-stream-prefix": "${ecs_service_name}-LogGroup-stream"
             }
       },
     "environment": [

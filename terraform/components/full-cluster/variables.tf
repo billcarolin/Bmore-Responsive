@@ -10,7 +10,18 @@ variable "vpc_cidr" {
 }
 
 variable "ecs_cluster_name" {}
+variable "ecs_service_name" {}
 variable "internet_cidr_blocks" {}
+variable "fargate_cpu" {
+  default     = "1024"
+  description = "fargate instance CPU units to provision, my requirement vcpu = 1 cpu * 1024"
+}
+
+variable "fargate_memory" {
+  default     = "2048"
+  description = "Fargate instance memory to provision (in MiB) not MB"
+}
+variable "docker_container_port" {}
 
 variable "db_password" {
   type    = string
