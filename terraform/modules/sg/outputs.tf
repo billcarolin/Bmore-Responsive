@@ -5,7 +5,7 @@ output "ecs_sg_id" {
 
 output "alb-sg-id" {
   description = "ALB Security Group ID"
-  value       = aws_security_group.sg-alb.id
+  value       = aws_security_group.sg-alb-ecs.id
 }
 
 output "sg_postgresql_id" {

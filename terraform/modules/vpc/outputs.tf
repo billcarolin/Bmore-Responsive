@@ -2,6 +2,11 @@ output "vpc-id" {
   description = "VPC ID"
   value       = aws_vpc.vpc.id
 }
+
+output "vpc-cidr" {
+  value = var.vpc_cidr
+}
+
 output "subnet_ids" {
   description = "Subnet IDs"
   value       = aws_subnet.private-subnet.*.id

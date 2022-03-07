@@ -244,7 +244,7 @@ resource "aws_ecs_service" "pricer_ecs_service" {
 
   #FIXME -- temporarily allow access through public ip until DNS is switched over.
   network_configuration {
-    subnets           = data.terraform_remote_state.platform.outputs.ecs_public_subnets
+    subnets           = var.public_subnet_ids
     security_groups   = [aws_security_group.temp_app_security_group.id]
     assign_public_ip  = true
   }
@@ -259,13 +259,13 @@ resource "aws_ecs_service" "pricer_ecs_service" {
 resource "aws_security_group" "temp_app_security_group" {
   name        = "${var.ecs_service_name}-SG"
   description = "Security group for springbootapp to communicate in and out"
-  vpc_id      = data.terraform_remote_state.platform.outputs.vpc_id
+  vpc_id      = var.vpc_id
 
   ingress {
     from_port   = 3000
     protocol    = "TCP"
     to_port     = 3000
-    cidr_blocks = [data.terraform_remote_state.platform.outputs.vpc_cidr_block]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   egress {

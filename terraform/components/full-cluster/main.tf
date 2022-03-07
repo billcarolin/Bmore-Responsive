@@ -1,15 +1,9 @@
 terraform {
-  required_version = "0.12.6"
-  backend "s3" {
-    bucket  = "cfb-healthcare-rollcall-cfb-aws-terraform-state"
-    key     = "cfb-healthcare-rollcall/terraform/terraform.tfstate"
-    region  = "us-east-2"
-    encrypt = true
-  }
+  required_version = ">= 0.12"
+  backend "s3" {}
 }
 
 provider "aws" {
-  version = "2.54.0"
   region  = var.aws_region
 }
 
@@ -149,6 +143,7 @@ module "ecs_cluster" {
   seed_data_bucket_arn                   = "arn:aws:s3:::seed-data-cfb-aws"
   public_subnet_ids                      = module.vpc.public-subnet-ids
   vpc_id                                 = module.vpc.vpc-id
+  vpc_cidr                               = module.vpc.vpc-cidr
 }
 
 module "asg" {

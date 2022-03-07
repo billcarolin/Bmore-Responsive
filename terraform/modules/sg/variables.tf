@@ -4,7 +4,7 @@ variable "vpc_id" {
 
 variable "mytags" {
   description = "Tags to include on the resources"
-  type        = "map"
+  type        = map(string)
   default     = {}
 }
 

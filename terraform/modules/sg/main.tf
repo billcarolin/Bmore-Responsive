@@ -1,5 +1,4 @@
 terraform {
-  backend "s3" {}
   required_version = ">= 0.12"
 }
 
@@ -11,7 +10,7 @@ resource "aws_security_group" "sg-alb-ecs" {
   vpc_id      = "${var.vpc_id}"
 
   # Merge tags from environment tfvars and create name tag
-  tags = "${merge(map("Name", "bmore-responsive-alb-access"), var.mytags)}"
+  tags = merge(tomap({"Name" = "bmore-responsive-alb-access"}), var.mytags)
 
   ingress {
     # TLS (change to whatever ports you need)
@@ -25,7 +24,7 @@ resource "aws_security_group" "sg-alb-ecs" {
     # approved internal IPs. (10.x.x.x/x block(s))
     #TODO -- cidr_blocks = [var.internet_cidr_blocks]
     #currently both public and private ips inside this VPC
-    cidr_blocks = "10.0.0.0/16"
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
   egress {
@@ -42,7 +41,7 @@ resource "aws_security_group" "sg-ecs" {
   vpc_id = "${var.vpc_id}"
 
   # Merge tags from environment tfvars and create name tag
-  tags = "${merge(map("Name", "bmore-responsive-ecs-host-access"), var.mytags)}"
+  tags = merge(tomap({"Name" = "bmore-responsive-ecs-host-access"}), var.mytags)
 
   ingress {
     from_port       = 32768
@@ -64,7 +63,7 @@ resource "aws_security_group" "sg_postgresql" {
   vpc_id = var.vpc_id
 
   # Merge tags from environment tfvars and create name tag
-  tags = merge(map("Name", "bmore-responsive-db-access"), var.mytags)
+  tags = merge(tomap({"Name" = "bmore-responsive-db-access"}), var.mytags)
 
   ingress {
     # TLS (change to whatever ports you need)

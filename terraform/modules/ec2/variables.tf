@@ -1,6 +1,6 @@
 variable "subnet_ids" {
   description = "The VPC Subnet IDs available to launch in"
-  type        = "list"
+  type        = list(string)
 }
 
 variable "app_name" {
@@ -9,7 +9,7 @@ variable "app_name" {
 
 variable "tags" {
   description = "Tags to include on the resources"
-  type        = "map"
+  type        = map(string)
 }
 
 variable "ec2_ami" {
@@ -29,7 +29,7 @@ variable "ec2_instance_count" {
 
 variable "vpc_sg" {
   description = "List of VPC security group IDs"
-  type        = "list"
+  type        = list(string)
 }
 
 variable "ecs_role" {
