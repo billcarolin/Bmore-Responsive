@@ -84,32 +84,36 @@ resource "random_pet" "random_pet" {
 
 module "vpc" {
   source   = "../../modules/vpc"
-  vpc_cidr = "10.0.0.0/16"
+  vpc_cidr = var.vpc_cidr
 }
 
 module "sg" {
   source           = "../../modules/sg"
   vpc_id           = module.vpc.vpc-id
   db_ingress_cidrs = module.vpc.private_subnet_cidrs
+  ecs_cluster_name = var.ecs_cluster_name
+  internet_cidr_blocks = var.internet_cidr_blocks
 }
 
 data "aws_route53_zone" "hosted_zone" {
-  zone_id = var.zone_id
-}
+   zone_id = var.zone_id
+ }
 
-module "certificate" {
-  source      = "../../modules/certificate"
-  dns_zone_id = data.aws_route53_zone.hosted_zone.zone_id
-  domain_name = "api.${data.aws_route53_zone.hosted_zone.name}"
-}
+#TODO -- use ACM or existing
+#module "certificate" {
+#  source      = "../../modules/certificate"
+#  dns_zone_id = data.aws_route53_zone.hosted_zone.zone_id
+#  domain_name = "api.${data.aws_route53_zone.hosted_zone.name}"
+#}
 
-module "dns_record" {
-  source      = "../../modules/dns_record"
-  name        = "api.${data.aws_route53_zone.hosted_zone.name}"
-  zone_id     = data.aws_route53_zone.hosted_zone.zone_id
-  lb_dns_name = module.alb.lb-dns
-  lb_zone_id  = module.alb.zone_id
-}
+#TODO --
+#module "dns_record" {
+#  source      = "../../modules/dns_record"
+#  name        = "api.${data.aws_route53_zone.hosted_zone.name}"
+#  zone_id     = data.aws_route53_zone.hosted_zone.zone_id
+#  lb_dns_name = module.alb.lb-dns
+#  lb_zone_id  = module.alb.zone_id
+#}
 
 module "alb" {
   source          = "../../modules/alb"
@@ -117,7 +121,8 @@ module "alb" {
   vpc_subnets     = module.vpc.public-subnet-ids
   lb_sg           = module.sg.alb-sg-id
   cfb_app_port    = 3000
-  certificate_arn = module.certificate.certificate_arn
+  #TODO -- certificate_arn = module.certificate.certificate_arn
+  certificate_arn = "TODO"
 }
 
 module "waf" {

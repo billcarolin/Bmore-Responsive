@@ -11,3 +11,6 @@ variable "mytags" {
 variable "db_ingress_cidrs" {
   type = list(string)
 }
+
+variable "ecs_cluster_name" {}
+variable "internet_cidr_blocks" {}

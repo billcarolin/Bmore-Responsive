@@ -1,8 +1,16 @@
 variable "aws_region" {
   description = "AWS Region to use."
   type        = string
-  default     = "us-east-2"
+  default     = "us-east-1"
 }
+
+variable "vpc_cidr" {
+  default     = "10.0.0.0/16"
+  description = "VPC cidr block"
+}
+
+variable "ecs_cluster_name" {}
+variable "internet_cidr_blocks" {}
 
 variable "db_password" {
   type    = string
