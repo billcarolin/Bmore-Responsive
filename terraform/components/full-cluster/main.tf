@@ -186,7 +186,7 @@ module "ec2" {
   subnet_ids             = module.vpc.subnet_ids
   app_name               = "cfb"
   tags = { Name =  "healthcare_rollcall_db_seeder"}
-  ec2_ami = "ami-044bf85e844eddde5"
+  ec2_ami = "ami-0b602c13bd444327c"
   ec2_instance_type = "m5.large"
   ec2_instance_count = "1"
   ecs_role               = module.ecs_cluster.ecs_role

@@ -2,15 +2,11 @@
   {
     "name": "${ecs_service_name}",
     "image": "${docker_image_url}",
-    "cpu": ${fargate_cpu},
-    "memory": ${fargate_memory},
     "essential": true,
     "portMappings": [
       {
-        "containerPort": ${docker_container_port},
-        "hostPort": 0
-      }
-    ],
+        "containerPort": ${docker_container_port}
+      }],
     "logConfiguration": 
       {
         "logDriver": "awslogs",

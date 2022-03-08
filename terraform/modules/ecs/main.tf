@@ -216,30 +216,25 @@ resource "aws_ecs_cluster" "ecs_cluster_fargate" {
 }
 
 resource "aws_cloudwatch_log_group" "cfb-api-logs" {
-  name = "cfb-api-logs"
+  name = "${var.ecs_service_name}-LogGroup"
 }
 
 resource "aws_ecs_task_definition" "bmore-responsive_ecs_task_definition" {
-  family                  = var.ecs_service_name
-  container_definitions   = var.bmore-responsive_container_definitions
+  container_definitions     = var.bmore-responsive_container_definitions
+  family                    = var.ecs_service_name
   cpu                       = var.fargate_cpu
   memory                    = var.fargate_memory
   requires_compatibilities  = ["FARGATE"]
   network_mode              = "awsvpc"
-  //task_role_arn         = "arn:aws:iam::180104022864:role/bmore-responsive_ecs_cluster_role"
-  task_role_arn           = aws_iam_role.task_execution_role.arn
-  execution_role_arn      = aws_iam_role.task_execution_role.arn
-  //awslogs-create-group    = "true"
-  //awslogs-region          = "${var.aws_region}"
-  //awslogs-group           = aws_cloudwatch_log_group.cfb-api-logs.arn
-  //awslogs-stream-prefix   = "cfb-api-"
+  task_role_arn             = aws_iam_role.task_execution_role.arn
+  execution_role_arn        = aws_iam_role.task_execution_role.arn
 }
 
 resource "aws_ecs_service" "pricer_ecs_service" {
   name            = var.ecs_service_name
   task_definition = aws_ecs_task_definition.bmore-responsive_ecs_task_definition.arn
   desired_count   = var.bmore-responsive_desired_count
-  cluster         = aws_ecs_cluster.ecs_cluster_fargate.id
+  cluster         = aws_ecs_cluster.ecs_cluster_fargate.name
   launch_type     = "FARGATE"
 
   #FIXME -- temporarily allow access through public ip until DNS is switched over.
