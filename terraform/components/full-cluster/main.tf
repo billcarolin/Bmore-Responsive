@@ -19,7 +19,9 @@ module "s3" {
 data "template_file" "cfb_ecs_task_definition" {
   template = file("cfb-container.json.tpl")
   vars = {
-    docker_image_url     = module.ecs_cluster.cfb_registry
+    ecs_service_name      = var.ecs_service_name
+    #docker_image_url     = module.ecs_cluster.cfb_registry
+    docker_image_url      = "docker.io/codeforbaltimore/bmore-responsive"
     docker_container_port = var.docker_container_port
     fargate_cpu          = var.fargate_cpu
     fargate_memory       = var.fargate_memory
@@ -63,13 +65,13 @@ data "template_file" "user_data" {
 data "template_file" "seed_user_data" {
   template = file("userdata_db_seed.sh.tpl")
   vars = {
-    seed_data_bucket = "seed-data-cfb-aws"
+    seed_data_bucket  = "seed-data-cfb-aws"
     database_username = "${module.db.this_db_instance_username}"
     database_password = "${var.db_password}"
-    database_hostname = "${module.db.this_db_instance_address}"
-    database_port = "${module.db.this_db_instance_port}"
-    database_name = "healthcareRollcallDB"
-    database_schema = "public"
+    database_host     = "${module.db.this_db_instance_address}"
+    database_port     = "${module.db.this_db_instance_port}"
+    database_name     = "healthcareRollcallDB"
+    database_schema   = "public"
   }
 }
 
@@ -80,8 +82,10 @@ resource "random_pet" "random_pet" {
 }
 
 module "vpc" {
-  source   = "../../modules/vpc"
-  vpc_cidr = var.vpc_cidr
+  source               = "../../modules/vpc"
+  vpc_cidr             = var.vpc_cidr
+  public_subnet_cidrs  = var.public_subnet_cidrs
+  private_subnet_cidrs = var.private_subnet_cidrs
 }
 
 module "sg" {
@@ -92,9 +96,10 @@ module "sg" {
   internet_cidr_blocks = var.internet_cidr_blocks
 }
 
-data "aws_route53_zone" "hosted_zone" {
-   zone_id = var.zone_id
- }
+#TODO -- Get the zone
+//data "aws_route53_zone" "hosted_zone" {
+//   zone_id = var.zone_id
+// }
 
 #TODO -- use ACM or existing
 #module "certificate" {
@@ -162,7 +167,7 @@ module "asg" {
 module "db" {
   source                 = "../../modules/db"
   resource_suffix        = random_pet.random_pet.id
-  engine_version         = "10.6"
+  engine_version         = "10.17"
   instance_class         = "db.t2.small"
   username               = "cfb_user"
   password               = var.db_password

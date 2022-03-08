@@ -1,6 +1,6 @@
 [
   {
-    "name": "${task_definition_name}",
+    "name": "${ecs_service_name}",
     "image": "${docker_image_url}",
     "cpu": ${fargate_cpu},
     "memory": ${fargate_memory},

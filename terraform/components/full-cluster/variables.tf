@@ -8,6 +8,8 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
   description = "VPC cidr block"
 }
+variable public_subnet_cidrs {}
+variable private_subnet_cidrs {}
 
 variable "ecs_cluster_name" {}
 variable "ecs_service_name" {}
@@ -25,22 +27,18 @@ variable "docker_container_port" {}
 
 variable "db_password" {
   type    = string
-  default = null
 }
 
 variable "smtp_password" {
   type    = string
-  default = null
 }
 
 variable "jwt_key" {
   type    = string
-  default = "abc123"
 }
 
 variable "api_url" {
   type    = string
-  default = null
 }
 
 variable "public_hosted_zone_name" {}

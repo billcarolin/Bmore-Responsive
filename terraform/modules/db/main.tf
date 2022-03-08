@@ -22,7 +22,7 @@ resource "aws_db_instance" "this" {
   iops              = var.iops
   storage_encrypted = var.storage_encrypted
   kms_key_id        = var.kms_key_id
-  name              = "healthcareRollcallDB"
+  db_name           = "healthcareRollcallDB"
 
   # NOTE: Do NOT use 'user' as the value for 'username' as it throws:
   # "Error creating DB Instance: InvalidParameterValue: MasterUsername

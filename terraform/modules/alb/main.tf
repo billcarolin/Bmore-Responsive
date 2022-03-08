@@ -6,7 +6,7 @@ terraform {
 # TODO: Make sure APIs have health checks that can be used
 # Create ALB
 resource "aws_lb" "ecs_cluster_alb" {
-  name               = "${var.ecs_cluster_name}-alb"
+  name               = "bmore-responsive-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [var.lb_sg]

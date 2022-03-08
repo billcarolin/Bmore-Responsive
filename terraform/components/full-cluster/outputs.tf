@@ -31,6 +31,7 @@ output "db_instance_username" {
 output "db_instance_password" {
   description = "The database password (this password may be old, because Terraform doesn't track it after initial creation)"
   value       = module.db.this_db_instance_password
+  sensitive = true
 }
 
 output "db_instance_address" {
@@ -43,6 +44,6 @@ output "db_instance_endpoint" {
   value       = module.db.this_db_instance_endpoint
 }
 
-output "public_hosted_zone_nameservers" {
-  value = data.aws_route53_zone.hosted_zone.zone_id
-}
+//output "public_hosted_zone_nameservers" {
+//  value = data.aws_route53_zone.hosted_zone.zone_id
+//}
